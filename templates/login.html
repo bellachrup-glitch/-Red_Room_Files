@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<title>Red Room Files</title>
+
+<style>
+
+body{
+background:#050505;
+color:white;
+font-family:monospace;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.login-box{
+background:#0a0a0a;
+border:1px solid red;
+padding:40px;
+width:350px;
+text-align:center;
+}
+
+h1{color:red;}
+
+button{
+margin:10px 0;
+padding:10px;
+background:black;
+border:1px solid red;
+color:white;
+cursor:pointer;
+width:100%;
+}
+
+button:hover{background:red;}
+
+input,select{
+width:100%;
+padding:10px;
+margin:8px 0;
+background:black;
+border:1px solid #333;
+color:white;
+}
+
+.loading{
+color:lime;
+display:none;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="login-box">
+
+<h1>👁 Red Room Files</h1>
+
+<button onclick="showGuest()">Enter as Guest</button> <button onclick="showAdmin()">Admin Login</button>
+
+<!-- ================= GUEST LOGIN ================= -->
+
+<form action="/login"
+method="POST"
+id="guestForm"
+style="display:none;"
+onsubmit="return loadingGuest()">
+
+<input name="name" placeholder="Name" required>
+
+<select name="gender" required>
+<option value="">Gender</option>
+<option>Male</option>
+<option>Female</option>
+<option>Other</option>
+</select>
+
+<input name="age"
+type="number"
+placeholder="Age"
+min="10"
+max="120"
+required>
+
+<input name="national_id"
+placeholder="9 Digit ID"
+maxlength="9"
+pattern="[0-9]{9}"
+required>
+
+<button id="guestBtn">Enter</button>
+
+<div class="loading" id="guestLoading">
+Connecting...
+</div>
+
+</form>
+
+<!-- ================= ADMIN LOGIN ================= -->
+
+<form action="/admin"
+method="POST"
+id="adminForm"
+style="display:none;"
+onsubmit="return loadingAdmin()">
+
+<input name="email" placeholder="Admin Email" required>
+
+<input name="password"
+type="password"
+placeholder="Password"
+required>
+
+<button id="adminBtn">Login</button>
+
+<div class="loading" id="adminLoading">
+Opening...
+</div>
+
+</form>
+
+</div>
+
+<script>
+
+function showGuest(){
+document.getElementById("guestForm").style.display="block";
+document.getElementById("adminForm").style.display="none";
+}
+
+function showAdmin(){
+document.getElementById("adminForm").style.display="block";
+document.getElementById("guestForm").style.display="none";
+}
+
+function loadingGuest(){
+
+let id=document.querySelector('input[name="national_id"]').value;
+
+if(!/^[0-9]{9}$/.test(id)){
+alert("ID must be exactly 9 digits");
+return false;
+}
+
+document.getElementById("guestBtn").disabled=true;
+document.getElementById("guestLoading").style.display="block";
+return true;
+}
+
+function loadingAdmin(){
+document.getElementById("adminBtn").disabled=true;
+document.getElementById("adminLoading").style.display="block";
+return true;
+}
+
+</script>
+
+</body>
+</html>

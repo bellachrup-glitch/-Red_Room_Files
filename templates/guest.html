@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Red Room Files</title>
+
+<link rel="stylesheet"
+href="{{ url_for('static', filename='css/style.css') }}">
+
+<style>
+
+body{
+    background:#050505;
+    color:#eee;
+    font-family:monospace;
+    text-align:center;
+    margin:0;
+}
+
+/* HEADER */
+
+.header{
+    background:#111;
+    padding:20px;
+    border-bottom:1px solid red;
+}
+
+h1{
+    color:red;
+}
+
+/* CARD */
+
+.card{
+    margin-top:40px;
+    background:#0a0a0a;
+    border:1px solid red;
+    display:inline-block;
+    padding:40px;
+    width:420px;
+}
+
+/* STATUS */
+
+.status{
+    margin-top:20px;
+    color:lime;
+    font-size:18px;
+}
+
+/* INFO */
+
+.info{
+    display:none;
+}
+
+/* LOGOUT */
+
+.logout{
+    margin-top:30px;
+    display:inline-block;
+    padding:10px 20px;
+    background:red;
+    color:white;
+    text-decoration:none;
+}
+
+/* POSTS */
+
+.posts-title{
+    margin-top:60px;
+    text-shadow:0 0 10px red;
+}
+
+.container{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:25px;
+    padding:20px;
+}
+
+.post{
+    width:320px;
+    background:#120000;
+    border:1px solid #300000;
+    border-radius:15px;
+    padding:15px;
+    box-shadow:0 0 15px #8b0000;
+    transition:0.4s;
+}
+
+.post:hover{
+    transform:scale(1.03);
+}
+
+.post img{
+    width:100%;
+    height:350px;
+    object-fit:cover;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+/* BUTTONS */
+
+button{
+    background:red;
+    color:white;
+    border:none;
+    padding:8px 14px;
+    margin-top:10px;
+    cursor:pointer;
+}
+
+input{
+    width:95%;
+    padding:8px;
+    margin-top:10px;
+    background:#111;
+    color:white;
+    border:1px solid red;
+}
+
+/* COMMENTS */
+
+.comment-box{
+    display:none;
+    margin-top:15px;
+    text-align:left;
+    background:#0a0a0a;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid #222;
+}
+
+.comment-item{
+    margin-bottom:12px;
+    padding-bottom:10px;
+    border-bottom:1px solid #222;
+}
+
+.comment-time{
+    font-size:11px;
+    color:#666;
+}
+
+.no-comments{
+    color:#777;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+
+<div class="header">
+<h1>👁 RED ROOM FILES</h1>
+</div>
+
+<!-- USER CARD -->
+
+<div class="card">
+
+<h2>Welcome {{ user.name }}</h2>
+
+<p>You are now inside the system...</p>
+
+<div class="status">
+
+{% if user.online %}
+
+🟢 Status: ONLINE
+
+{% else %}
+
+🔴 Status: OFFLINE
+
+{% endif %}
+
+</div>
+
+<div class="info">
+
+<p><b>ID:</b> {{ user.id }}</p>
+<p><b>Gender:</b> {{ user.gender }}</p>
+<p><b>Age:</b> {{ user.age }}</p>
+<p><b>IP:</b> {{ user.ip }}</p>
+<p><b>Visits:</b> {{ user.visits }}</p>
+
+</div>
+
+<a href="/logout" class="logout">
+Logout
+</a>
+
+</div>
+
+<!-- POSTS -->
+
+<h2 class="posts-title">Latest Posts</h2>
+
+<div class="container">
+
+{% if posts %}
+
+{% for image, data in posts.items() %}
+
+<div class="post">
+
+<img
+src="{{ url_for('static', filename='uploads/' + image) }}"
+onclick="toggleComments('{{ loop.index }}')"
+>
+
+<h3>{{ data.caption }}</h3>
+
+<p>
+❤
+<span id="likes-{{ image }}">
+{{ data.likes }}
+</span>
+Likes
+</p>
+
+<button onclick="likePost('{{ image }}')">
+❤ Like
+</button>
+
+<button
+onclick="toggleComments('{{ loop.index }}')"
+style="
+margin-top:15px;
+background:#111;
+border:1px solid red;
+"
+>
+
+💬 Comments
+(
+<span id="comments-count-{{ image }}">
+{{ data.comments|length }}
+</span>
+)
+
+</button>
+
+<!-- COMMENTS -->
+
+<div
+id="comments-{{ loop.index }}"
+class="comment-box"
+>
+
+<div id="comments-live-{{ image }}">
+
+{% if data.comments %}
+
+{% for c in data.comments %}
+
+<div class="comment-item">
+
+<b style="color:#ff4444;">
+{{ c.user }}
+</b>
+
+:
+
+{{ c.text }}
+
+<br>
+
+<span class="comment-time">
+{{ c.time }}
+</span>
+
+</div>
+
+{% endfor %}
+
+{% else %}
+
+<p class="no-comments">
+No comments yet...
+</p>
+
+{% endif %}
+
+</div>
+
+<form
+action="/comment/{{ image }}"
+method="POST"
+>
+
+<input
+name="comment"
+placeholder="Write comment..."
+required
+>
+
+<button type="submit">
+Send
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+{% else %}
+
+<p>No posts yet...</p>
+
+{% endif %}
+
+</div>
+
+<!-- JAVASCRIPT -->
+
+<script>
+
+/* ================= TOGGLE COMMENTS ================= */
+
+function toggleComments(id){
+
+    let box =
+    document.getElementById("comments-" + id);
+
+    if(
+        box.style.display === "none" ||
+        box.style.display === ""
+    ){
+
+        box.style.display = "block";
+
+    }else{
+
+        box.style.display = "none";
+
+    }
+
+}
+
+/* ================= LIKE ================= */
+
+function likePost(image){
+
+    fetch("/like/" + image, {
+
+        method:"POST"
+
+    })
+
+    .then(function(res){
+
+        return res.json();
+
+    })
+
+    .then(function(data){
+
+        let likes =
+        document.getElementById(
+        "likes-" + image
+        );
+
+        if(likes){
+
+            likes.innerText = data.likes;
+
+        }
+
+    });
+
+}
+
+/* ================= LIVE POSTS ================= */
+
+async function refreshPosts(){
+
+    try{
+
+        const response =
+        await fetch("/posts");
+
+        const posts =
+        await response.json();
+
+        for(const image in posts){
+
+            /* likes */
+
+            let likesElement =
+            document.getElementById(
+            "likes-" + image
+            );
+
+            if(likesElement){
+
+                likesElement.innerText =
+                posts[image].likes;
+
+            }
+
+            /* comments count */
+
+            let commentsCount =
+            document.getElementById(
+            "comments-count-" + image
+            );
+
+            if(commentsCount){
+
+                commentsCount.innerText =
+                posts[image].comments.length;
+
+            }
+
+            /* comments */
+
+            let commentsBox =
+            document.getElementById(
+            "comments-live-" + image
+            );
+
+            if(commentsBox){
+
+                let html = "";
+
+                if(posts[image].comments.length > 0){
+
+                    posts[image].comments.forEach(function(c){
+
+                        html +=
+                        '<div class="comment-item">' +
+
+                        '<b style="color:#ff4444;">' +
+                        c.user +
+                        '</b> : ' +
+
+                        c.text +
+
+                        '<br>' +
+
+                        '<span class="comment-time">' +
+                        c.time +
+                        '</span>' +
+
+                        '</div>';
+
+                    });
+
+                }else{
+
+                    html =
+                    '<p class="no-comments">No comments yet...</p>';
+
+                }
+
+                commentsBox.innerHTML = html;
+
+            }
+
+        }
+
+    }catch(e){
+
+        console.log(e);
+
+    }
+
+}
+
+/* ================= HEARTBEAT ================= */
+
+function heartbeat(){
+
+    fetch("/heartbeat");
+
+}
+
+/* ================= AUTO REFRESH ================= */
+
+setInterval(refreshPosts, 2000);
+
+setInterval(heartbeat, 5000);
+
+refreshPosts();
+
+heartbeat();
+
+/* ================= LOGOUT ================= */
+
+window.addEventListener(
+"beforeunload",
+function () {
+
+    navigator.sendBeacon("/logout");
+
+}
+);
+
+</script>
+
+</body>
+</html>

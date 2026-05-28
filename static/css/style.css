@@ -1,0 +1,232 @@
+/* ================= GLOBAL ================= */
+
+body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:#0a0000;
+    color:white;
+    transition:0.5s;
+}
+
+/* نبض خلفية */
+@keyframes bgPulse{
+    from{background:#0a0000;}
+    to{background:#140000;}
+}
+
+body{
+    animation:bgPulse 8s infinite alternate;
+}
+
+
+/* ================= TITLE ================= */
+
+.site-title{
+    text-align:center;
+    font-size:45px;
+    color:#ff0000;
+
+    text-shadow:
+        0 0 10px red,
+        0 0 30px #8b0000,
+        0 0 60px #ff000044;
+
+    margin-top:30px;
+}
+
+
+/* ================= LOGIN ================= */
+
+.login-box{
+    width:350px;
+    margin:80px auto;
+    background:#140000;
+    padding:30px;
+    border-radius:12px;
+
+    border:1px solid #300000;
+
+    box-shadow:
+        0 0 20px #8b0000,
+        inset 0 0 20px #220000;
+}
+
+.login-box input,
+.login-box select{
+    width:90%;
+    padding:10px;
+    margin:10px;
+
+    background:#100000;
+    border:1px solid #8b0000;
+    color:white;
+}
+
+/* إزالة الأبيض من select */
+select option{
+    background:#100000;
+    color:white;
+}
+
+.login-box button{
+    padding:10px 20px;
+    background:#8b0000;
+    border:none;
+    color:white;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.login-box button:hover{
+    background:red;
+    box-shadow:
+        0 0 15px red,
+        0 0 30px #ff000055;
+}
+
+
+/* ================= CONTAINER ================= */
+
+.container{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:25px;
+    padding:20px;
+}
+
+
+/* ================= POST ================= */
+
+.post{
+    background:#120000;
+    width:320px;
+    border-radius:15px;
+    padding:15px;
+
+    border:1px solid #300000;
+
+    box-shadow:0 0 15px #8b0000;
+    transition:0.4s;
+}
+
+.post:hover{
+    transform:scale(1.04);
+    box-shadow:
+        0 0 20px red,
+        0 0 40px #ff000055,
+        0 0 70px #ff000022;
+}
+
+
+/* ================= IMAGE ================= */
+
+.post-img{
+    width:100%;
+    height:350px;
+    object-fit:cover;
+    border-radius:10px;
+}
+
+
+/* ================= BUTTONS ================= */
+
+.like-btn,
+.comment-form button,
+.delete-btn{
+    background:#8b0000;
+    border:none;
+    padding:8px 15px;
+    color:white;
+    cursor:pointer;
+    margin-top:8px;
+    transition:0.3s;
+}
+
+.like-btn:hover,
+.comment-form button:hover,
+.delete-btn:hover{
+    background:red;
+    box-shadow:
+        0 0 10px red,
+        0 0 25px #ff000055;
+}
+
+
+/* ================= INPUT COMMENT ================= */
+
+.comment-form input{
+    background:#100000;
+    border:1px solid #8b0000;
+    color:white;
+    padding:8px;
+}
+
+
+/* ================= COMMENTS ================= */
+
+.comment{
+    background:#1a0000;
+    padding:6px;
+    margin:5px 0;
+    border-left:3px solid red;
+}
+
+.no-comments{
+    opacity:0.6;
+}
+
+
+/* ================= LINKS ================= */
+
+a{
+    color:#ff2a2a;
+    text-decoration:none;
+}
+
+a:hover{
+    text-shadow:0 0 10px red;
+}
+
+
+/* ================= ADMIN PANEL ================= */
+
+.admin-title{
+    text-align:center;
+    color:#ff0000;
+    text-shadow:
+        0 0 15px red,
+        0 0 35px #8b0000;
+    margin-top:20px;
+}
+
+.upload-box{
+    text-align:center;
+    margin:20px;
+}
+
+.upload-box input{
+    background:#100000;
+    border:1px solid #8b0000;
+    color:white;
+}
+
+
+/* ================= SCROLLBAR ================= */
+
+::-webkit-scrollbar{
+    width:8px;
+}
+
+::-webkit-scrollbar-track{
+    background:#0a0000;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#8b0000;
+    border-radius:10px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+    background:red;
+}6

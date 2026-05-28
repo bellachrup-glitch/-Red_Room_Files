@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<title>Red Room Files | Admin</title>
+
+<link rel="stylesheet"
+href="{{ url_for('static', filename='css/style.css') }}">
+
+<meta charset="UTF-8">
+
+<!-- MAP LIBRARY -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+
+body{
+background:#050505;
+color:#eee;
+font-family:monospace;
+margin:0;
+}
+
+/* HEADER */
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px;
+background:#111;
+border-bottom:1px solid red;
+}
+
+.logout-btn{
+color:red;
+text-decoration:none;
+font-size:18px;
+}
+
+/* LIVE COUNTER */
+.live-counter{
+margin:20px;
+padding:15px;
+background:#0a0a0a;
+border:1px solid red;
+font-size:20px;
+}
+
+/* VISITORS */
+.visitors{
+margin:30px;
+background:#0a0a0a;
+padding:20px;
+border:1px solid red;
+overflow-x:auto;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+border:1px solid #222;
+padding:10px;
+text-align:center;
+}
+
+th{
+background:#111;
+color:red;
+}
+
+.online{
+color:lime;
+}
+
+.offline{
+color:gray;
+}
+
+/* MAP */
+.map-box{
+margin:30px;
+border:1px solid red;
+padding:20px;
+background:#0a0a0a;
+}
+
+#map{
+height:400px;
+}
+
+/* UPLOAD */
+.upload-box{
+margin:30px;
+background:#0a0a0a;
+padding:20px;
+border:1px solid red;
+}
+
+.upload-box input,
+.upload-box button{
+margin-top:10px;
+padding:10px;
+background:#111;
+color:white;
+border:1px solid red;
+}
+
+/* POSTS */
+.container{
+padding:20px;
+display:flex;
+flex-wrap:wrap;
+gap:25px;
+justify-content:center;
+}
+
+.post{
+background:#111;
+padding:20px;
+border:1px solid #222;
+width:340px;
+border-radius:15px;
+box-shadow:0 0 15px #500;
+transition:0.3s;
+}
+
+.post:hover{
+transform:scale(1.03);
+box-shadow:0 0 20px red;
+}
+
+.post-img{
+width:100%;
+height:350px;
+object-fit:cover;
+border-radius:10px;
+}
+
+.delete-post{
+color:red;
+text-decoration:none;
+display:inline-block;
+margin-top:15px;
+}
+
+.delete-comment{
+color:red;
+margin-left:10px;
+text-decoration:none;
+}
+
+.comments{
+margin-top:15px;
+background:#0a0a0a;
+padding:10px;
+border-radius:10px;
+border:1px solid #222;
+max-height:250px;
+overflow-y:auto;
+}
+
+.comment-item{
+margin-bottom:12px;
+padding-bottom:10px;
+border-bottom:1px solid #222;
+}
+
+.likes{
+color:#ff4444;
+font-size:18px;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+
+<h1>
+Red Room Files — LIVE CONTROL PANEL 👁
+</h1>
+
+<a href="/admin-logout" class="logout-btn">
+Logout
+</a>
+
+</div>
+
+<!-- LIVE COUNTER -->
+<div class="live-counter">
+
+🔴 Online Now:
+<span id="live-count">0</span>
+
+</div>
+
+<!-- MAP -->
+<div class="map-box">
+
+<h2>📡 Visitors IP Map</h2>
+
+<div id="map"></div>
+
+</div>
+
+<!-- VISITORS TABLE -->
+<div class="visitors">
+
+<h2>👁 Live Visitors Monitoring</h2>
+
+<table>
+
+<tr>
+<th>Name</th>
+<th>ID</th>
+<th>IP</th>
+<th>Gender</th>
+<th>Age</th>
+<th>Visits</th>
+<th>Last Login</th>
+<th>Status</th>
+</tr>
+
+<tbody id="visitors-body">
+
+{% for uid, u in users.items() %}
+
+<tr>
+
+<td>{{ u.name }}</td>
+<td>{{ uid }}</td>
+<td>{{ u.ip }}</td>
+<td>{{ u.gender }}</td>
+<td>{{ u.age }}</td>
+<td>{{ u.visits }}</td>
+<td>{{ u.last_seen }}</td>
+
+<td>
+
+{% if u.online %}
+
+<span class="online">
+🟢 ONLINE
+</span>
+
+{% else %}
+
+<span class="offline">
+🔴 OFFLINE
+</span>
+
+{% endif %}
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+<!-- UPLOAD -->
+<div class="upload-box">
+
+<h2>Upload New Post</h2>
+
+<form method="POST" enctype="multipart/form-data">
+
+<input type="file" name="image" required>
+
+<br>
+
+<input
+type="text"
+name="caption"
+placeholder="Write caption..."
+required>
+
+<br>
+
+<button type="submit">
+Upload Post
+</button>
+
+</form>
+
+</div>
+
+<hr>
+
+<!-- POSTS -->
+<div class="container" id="posts-container">
+
+{% if posts %}
+
+{% for image, data in posts.items() %}
+
+<div class="post">
+
+<img
+src="{{ url_for('static', filename='uploads/' + image) }}"
+class="post-img"
+>
+
+<h3>{{ data.caption }}</h3>
+
+<p class="likes">
+❤
+<span id="likes-{{ image }}">
+{{ data.likes }}
+</span>
+Likes
+</p>
+
+<div class="comments">
+
+<h4>
+Comments
+(
+<span id="comments-count-{{ image }}">
+{{ data.comments|length }}
+</span>
+)
+</h4>
+
+<div id="comments-live-{{ image }}">
+
+{% if data.comments %}
+
+{% for c in data.comments %}
+
+<div class="comment-item">
+
+<b style="color:red;">
+{{ c.user }}
+</b>
+
+:
+
+{{ c.text }}
+
+<br>
+
+<span style="font-size:12px;color:#777;">
+{{ c.time }}
+</span>
+
+<a
+class="delete-comment"
+href="/delete-comment/{{ image }}/{{ loop.index0 }}"
+>
+🗑
+</a>
+
+</div>
+
+{% endfor %}
+
+{% else %}
+
+<p style="color:#777;">
+No comments yet...
+</p>
+
+{% endif %}
+
+</div>
+
+</div>
+
+<a
+class="delete-post"
+href="/delete/{{ image }}"
+>
+Delete Post 🗑️
+</a>
+
+</div>
+
+{% endfor %}
+
+{% else %}
+
+<h2>No posts uploaded yet</h2>
+
+{% endif %}
+
+</div>
+
+<!-- ================= JAVASCRIPT ================= -->
+
+<script>
+
+/* ================= MAP ================= */
+
+let map = L.map("map").setView([20,0],2);
+
+L.tileLayer(
+"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+{
+maxZoom:19
+}
+).addTo(map);
+
+let markers = [];
+
+/* ================= LOAD VISITORS ================= */
+
+async function loadVisitors(){
+
+try{
+
+const response = await fetch("/live-users");
+
+const users = await response.json();
+
+const table =
+document.getElementById("visitors-body");
+
+table.innerHTML = "";
+
+let online = 0;
+
+for(const id in users){
+
+const u = users[id];
+
+if(u.online){
+online++;
+}
+
+let status = u.online
+? '<span class="online">🟢 ONLINE</span>'
+: '<span class="offline">🔴 OFFLINE</span>';
+
+table.innerHTML += `
+<tr>
+<td>${u.name || "-"}</td>
+<td>${id}</td>
+<td>${u.ip || "-"}</td>
+<td>${u.gender || "-"}</td>
+<td>${u.age || "-"}</td>
+<td>${u.visits || 0}</td>
+<td>${u.last_seen || "-"}</td>
+<td>${status}</td>
+</tr>
+`;
+
+}
+
+document.getElementById("live-count").innerText =
+online;
+
+}catch(e){
+
+console.log(e);
+
+}
+
+}
+
+/* ================= LOAD MAP ================= */
+
+async function loadMap(){
+
+try{
+
+const response =
+await fetch("/map-data");
+
+const data =
+await response.json();
+
+markers.forEach(marker => {
+map.removeLayer(marker);
+});
+
+markers = [];
+
+for(const user of data){
+
+try{
+
+const geoResponse =
+await fetch(
+"https://ipapi.co/" + user.ip + "/json/"
+);
+
+const loc =
+await geoResponse.json();
+
+if(loc.latitude){
+
+let marker = L.marker([
+loc.latitude,
+loc.longitude
+]).addTo(map);
+
+marker.bindPopup(
+user.name + "<br>" + user.ip
+);
+
+markers.push(marker);
+
+}
+
+}catch(err){
+console.log(err);
+}
+
+}
+
+}catch(e){
+
+console.log(e);
+
+}
+
+}
+
+/* ================= LIVE POSTS ================= */
+
+async function refreshPosts(){
+
+try{
+
+const response =
+await fetch("/posts");
+
+const posts =
+await response.json();
+
+for(const image in posts){
+
+/* likes */
+const likesElement =
+document.getElementById(
+"likes-" + image
+);
+
+if(likesElement){
+
+likesElement.innerText =
+posts[image].likes;
+
+}
+
+/* comments count */
+const commentsCount =
+document.getElementById(
+"comments-count-" + image
+);
+
+if(commentsCount){
+
+commentsCount.innerText =
+posts[image].comments.length;
+
+}
+
+/* comments live */
+const commentsBox =
+document.getElementById(
+"comments-live-" + image
+);
+
+if(commentsBox){
+
+let html = "";
+
+if(posts[image].comments.length > 0){
+
+posts[image].comments.forEach(
+(c,index) => {
+
+html += `
+<div class="comment-item">
+
+<b style="color:red;">
+${c.user}
+</b>
+
+:
+
+${c.text}
+
+<br>
+
+<span style="font-size:12px;color:#777;">
+${c.time}
+</span>
+
+<a
+class="delete-comment"
+href="/delete-comment/${image}/${index}"
+>
+🗑
+</a>
+
+</div>
+`;
+
+});
+
+}else{
+
+html = `
+<p style="color:#777;">
+No comments yet...
+</p>
+`;
+
+}
+
+commentsBox.innerHTML = html;
+
+}
+
+}
+
+}catch(e){
+
+console.log(e);
+
+}
+
+}
+
+/* ================= AUTO REFRESH ================= */
+
+setInterval(loadVisitors,2000);
+
+setInterval(loadMap,8000);
+
+setInterval(refreshPosts,2000);
+
+/* FIRST LOAD */
+
+loadVisitors();
+
+loadMap();
+
+refreshPosts();
+
+</script>
+
+</body>
+
+</html>
