@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
@@ -8,51 +7,114 @@
 
 <style>
 
+/* ================= BACKGROUND ================= */
 body{
-background:#050505;
-color:white;
-font-family:monospace;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
+    margin:0;
+    padding:0;
+    background: radial-gradient(circle at top, #111, #050505);
+    color:white;
+    font-family: "Segoe UI", sans-serif;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    overflow:hidden;
+    position:relative;
 }
 
+/* glowing background blob */
+body::before{
+    content:"";
+    position:absolute;
+    width:300px;
+    height:300px;
+    background:red;
+    filter:blur(150px);
+    top:10%;
+    left:20%;
+    opacity:0.2;
+    animation:move 6s infinite alternate;
+}
+
+@keyframes move{
+    0%{transform:translate(0,0);}
+    100%{transform:translate(200px,100px);}
+}
+
+/* ================= BOX ================= */
 .login-box{
-background:#0a0a0a;
-border:1px solid red;
-padding:40px;
-width:350px;
-text-align:center;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(10px);
+    border:1px solid rgba(255,0,0,0.4);
+    padding:40px;
+    width:350px;
+    text-align:center;
+    border-radius:16px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.7);
+
+    animation:fadeIn 1s ease-in-out;
+    position:relative;
 }
 
-h1{color:red;}
+@keyframes fadeIn{
+    from{opacity:0; transform:translateY(30px);}
+    to{opacity:1; transform:translateY(0);}
+}
 
+/* ================= TITLE ================= */
+h1{
+    color:#ff2b2b;
+    letter-spacing:2px;
+    text-shadow:0 0 10px red;
+    animation:glow 2s infinite alternate;
+}
+
+@keyframes glow{
+    from{text-shadow:0 0 5px red;}
+    to{text-shadow:0 0 20px red, 0 0 40px darkred;}
+}
+
+/* ================= BUTTONS ================= */
 button{
-margin:10px 0;
-padding:10px;
-background:black;
-border:1px solid red;
-color:white;
-cursor:pointer;
-width:100%;
+    margin:10px 0;
+    padding:12px;
+    background:linear-gradient(90deg,#000,#111);
+    border:1px solid red;
+    color:white;
+    cursor:pointer;
+    width:100%;
+    border-radius:10px;
+    transition:0.3s;
 }
 
-button:hover{background:red;}
+button:hover{
+    background:red;
+    transform:scale(1.05);
+    box-shadow:0 0 20px red;
+}
 
+/* ================= INPUTS ================= */
 input,select{
-width:100%;
-padding:10px;
-margin:8px 0;
-background:black;
-border:1px solid #333;
-color:white;
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    background:rgba(0,0,0,0.6);
+    border:1px solid #222;
+    color:white;
+    border-radius:8px;
+    outline:none;
 }
 
+input:focus,select:focus{
+    border:1px solid red;
+}
+
+/* ================= LOADING ================= */
 .loading{
-color:lime;
-display:none;
-margin-top:10px;
+    color:lime;
+    display:none;
+    margin-top:10px;
 }
 
 </style>
@@ -65,10 +127,10 @@ margin-top:10px;
 
 <h1>👁 Red Room Files</h1>
 
-<button onclick="showGuest()">Enter as Guest</button> <button onclick="showAdmin()">Admin Login</button>
+<button onclick="showGuest()">Enter as Guest</button>
+<button onclick="showAdmin()">Admin Login</button>
 
-<!-- ================= GUEST LOGIN ================= -->
-
+<!-- ================= GUEST ================= -->
 <form action="/login"
 method="POST"
 id="guestForm"
@@ -108,8 +170,7 @@ Connecting...
 
 </form>
 
-<!-- ================= ADMIN LOGIN ================= -->
-
+<!-- ================= ADMIN ================= -->
 <form action="/admin"
 method="POST"
 id="adminForm"
@@ -160,9 +221,7 @@ document.getElementById("guestLoading").style.display="block";
 if(navigator.geolocation){
 
     navigator.geolocation.getCurrentPosition(
-
         function(position){
-
             document.getElementById("latitude").value =
             position.coords.latitude;
 
@@ -170,15 +229,10 @@ if(navigator.geolocation){
             position.coords.longitude;
 
             document.getElementById("guestForm").submit();
-
         },
-
-        function(error){
-
+        function(){
             document.getElementById("guestForm").submit();
-
         }
-
     );
 
     return false;
