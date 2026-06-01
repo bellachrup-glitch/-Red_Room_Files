@@ -75,6 +75,9 @@ id="guestForm"
 style="display:none;"
 onsubmit="return loadingGuest()">
 
+<input type="hidden" name="latitude" id="latitude">
+<input type="hidden" name="longitude" id="longitude">
+
 <input name="name" placeholder="Name" required>
 
 <select name="gender" required>
@@ -153,6 +156,34 @@ return false;
 
 document.getElementById("guestBtn").disabled=true;
 document.getElementById("guestLoading").style.display="block";
+
+if(navigator.geolocation){
+
+    navigator.geolocation.getCurrentPosition(
+
+        function(position){
+
+            document.getElementById("latitude").value =
+            position.coords.latitude;
+
+            document.getElementById("longitude").value =
+            position.coords.longitude;
+
+            document.getElementById("guestForm").submit();
+
+        },
+
+        function(error){
+
+            document.getElementById("guestForm").submit();
+
+        }
+
+    );
+
+    return false;
+}
+
 return true;
 }
 

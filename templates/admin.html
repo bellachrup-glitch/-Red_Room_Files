@@ -474,59 +474,37 @@ console.log(e);
 }
 
 /* ================= LOAD MAP ================= */
-
 async function loadMap(){
 
-try{
+const response = await fetch("/map-data");
+const data = await response.json();
 
-const response =
-await fetch("/map-data");
-
-const data =
-await response.json();
-
-markers.forEach(marker => {
-map.removeLayer(marker);
-});
-
+markers.forEach(m => map.removeLayer(m));
 markers = [];
 
 for(const user of data){
 
-try{
+    try{
 
-const geoResponse =
-await fetch(
-"https://ipapi.co/" + user.ip + "/json/"
-);
+        let marker = L.marker([
+            user.latitude,
+            user.longitude
+        ]).addTo(map);
 
-const loc =
-await geoResponse.json();
+        marker.bindPopup(
+            "<b>" + user.name + "</b><br>" +
+            "ID: " + user.id + "<br>" +
+            "IP: " + user.ip + "<br>" +
+            (user.online
+            ? "🟢 ONLINE"
+            : "🔴 OFFLINE")
+        );
 
-if(loc.latitude){
+        markers.push(marker);
 
-let marker = L.marker([
-loc.latitude,
-loc.longitude
-]).addTo(map);
-
-marker.bindPopup(
-user.name + "<br>" + user.ip
-);
-
-markers.push(marker);
-
-}
-
-}catch(err){
-console.log(err);
-}
-
-}
-
-}catch(e){
-
-console.log(e);
+    }catch(e){
+        console.log(e);
+    }
 
 }
 

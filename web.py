@@ -17,7 +17,7 @@ UPLOAD_FOLDER = "static/uploads"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# ✅ منع تضارب الكتابة
+
 file_lock = Lock()
 
 # ================= HELPERS =================
@@ -71,7 +71,7 @@ def load_posts():
     for p in data:
         data[p].setdefault("likes", 0)
         data[p].setdefault("comments", [])
-        data[p].setdefault("liked_by", [])   # ✅ الحل هنا
+        data[p].setdefault("liked_by", [])
 
     return data
 
@@ -151,12 +151,17 @@ def login():
         "visits": 0
     })
 
+    latitude = request.form.get("latitude")
+    longitude = request.form.get("longitude")
+
     users[uid].update({
         "name": name,
         "gender": gender,
         "age": age,
         "id": national_id,
         "ip": ip,
+        "latitude": latitude,
+        "longitude": longitude,
         "last_seen": datetime.now().isoformat(),
         "online": True
     })
@@ -329,7 +334,8 @@ def admin():
                     "caption": caption,
                     "time": str(datetime.now()),
                     "likes": 0,
-                    "comments": []
+                    "comments": [],
+                    "liked_by": []
                 },
                 **posts
             }
@@ -437,31 +443,42 @@ def map_data():
 
     users = load()
     now = datetime.now()
+
     result = []
 
-    for u in users.values():
-
-        ip = u.get("ip")
-        last_seen = u.get("last_seen")
-
-        if not ip or not last_seen:
-            continue
-
-        if ip.startswith(("127.", "192.168.", "10.", "172.")):
-            continue
+    for uid, u in users.items():
 
         try:
+
+            last_seen = u.get("last_seen")
+
+            if not last_seen:
+                continue
+
             last = datetime.fromisoformat(last_seen)
-            if now - last < timedelta(seconds=60):
+
+            # تجاهل المستخدمين المحذوفين بعد مدة طويلة
+            if now - last > timedelta(hours=24):
+                continue
+
+            lat = u.get("latitude")
+            lon = u.get("longitude")
+
+            if lat and lon:
+
                 result.append({
                     "name": u.get("name"),
-                    "ip": ip
+                    "id": uid,
+                    "ip": u.get("ip"),
+                    "latitude": float(lat),
+                    "longitude": float(lon),
+                    "online": u.get("online", False)
                 })
+
         except:
             pass
 
     return jsonify(result)
-
 
 # ================= RUN =================
 
