@@ -3,9 +3,63 @@ from datetime import datetime, timedelta
 import json
 import os
 from threading import Lock
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.secret_key = "secret123"
+
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///redroom.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db = SQLAlchemy(app)
+
+# ================= DATABASE MODELS =================
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    image = db.Column(
+        db.String(255),
+        unique=True,
+        nullable=False
+    )
+
+    caption = db.Column(db.Text)
+
+    likes = db.Column(
+        db.Integer,
+        default=0
+    )
+
+    created_at = db.Column(
+        db.String(100)
+    )
+
+
+class Comment(db.Model):
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    post_image = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+
+    username = db.Column(
+        db.String(100)
+    )
+
+    text = db.Column(
+        db.Text
+    )
+
+    time = db.Column(
+        db.String(100)
+    )
 
 # ================= ADMIN LOGIN =================
 ADMIN_EMAIL = "Killermesh273@gmail.com"
@@ -187,15 +241,30 @@ def feed():
     users = load()
     posts = load_posts()
 
+    # تحميل التعليقات من SQLite
+    for image in posts:
+
+        comments = Comment.query.filter_by(
+            post_image=image
+        ).all()
+
+        posts[image]["comments"] = []
+
+        for c in comments:
+
+            posts[image]["comments"].append({
+                "user": c.username,
+                "text": c.text,
+                "time": c.time
+            })
+
     user = users.get(session["user"])
 
-    return render_template("guest.html", user=user, posts=posts)
-
-
-@app.route("/welcome")
-def welcome():
-    return redirect("/feed")
-
+    return render_template(
+        "guest.html",
+        user=user,
+        posts=posts
+    )
 
 # ================= HEARTBEAT =================
 
@@ -285,14 +354,15 @@ def comment(image):
     username = users.get(session["user"], {}).get("name", "Guest")
 
     if image in posts and text:
+        new_comment = Comment(
+            post_image=image,
+            username=username,
+            text=text,
+            time=datetime.now().strftime("%d %b %Y - %H:%M")
+        )
 
-        posts[image]["comments"].append({
-            "user": username,
-            "text": text,
-            "time": datetime.now().strftime("%d %b %Y - %H:%M")
-        })
-
-    save_posts(posts)
+        db.session.add(new_comment)
+        db.session.commit()
 
     return redirect("/feed")
 
@@ -481,6 +551,9 @@ def map_data():
     return jsonify(result)
 
 # ================= RUN =================
+
+with app.app_context():
+    db.create_all()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
