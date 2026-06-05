@@ -482,8 +482,26 @@ def delete_comment(image, index):
 
 @app.route("/posts")
 def posts_api():
-    return jsonify(load_posts())
 
+    posts = load_posts()
+
+    for image in posts:
+
+        comments = Comment.query.filter_by(
+            post_image=image
+        ).all()
+
+        posts[image]["comments"] = []
+
+        for c in comments:
+
+            posts[image]["comments"].append({
+                "user": c.username,
+                "text": c.text,
+                "time": c.time
+            })
+
+    return jsonify(posts)
 
 @app.route("/live-users")
 def live_users_api():
