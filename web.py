@@ -60,6 +60,22 @@ class Comment(db.Model):
     time = db.Column(
         db.String(100)
     )
+class Like(db.Model):
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    post_image = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    user_id = db.Column(
+        db.String(100),
+        nullable=False
+    )
 
 # ================= ADMIN LOGIN =================
 ADMIN_EMAIL = "Killermesh273@gmail.com"
@@ -257,6 +273,14 @@ def feed():
                 "text": c.text,
                 "time": c.time
             })
+    for image in posts:
+
+        post = Post.query.filter_by(
+            image=image
+        ).first()
+
+        if post:
+            posts[image]["likes"] = post.likes
 
     user = users.get(session["user"])
 
@@ -316,27 +340,35 @@ def like(image):
     if "user" not in session:
         return jsonify({"likes": 0})
 
-    posts = load_posts()
+    user_id = session["user"]
 
-    if image not in posts:
+    post = Post.query.filter_by(
+        image=image
+    ).first()
+
+    if not post:
         return jsonify({"likes": 0})
 
-    user = session["user"]
+    existing_like = Like.query.filter_by(
+        post_image=image,
+        user_id=user_id
+    ).first()
 
-    # تأكد وجود القائمة
-    posts[image].setdefault("liked_by", [])
+    if not existing_like:
 
-    # منع سبام اللايك
-    if user not in posts[image]["liked_by"]:
-        posts[image]["liked_by"].append(user)
-        posts[image]["likes"] += 1
+        db.session.add(
+            Like(
+                post_image=image,
+                user_id=user_id
+            )
+        )
 
-        save_posts(posts)
+        post.likes += 1
+        db.session.commit()
 
     return jsonify({
-        "likes": posts[image]["likes"]
+        "likes": post.likes
     })
-
 
 # ================= COMMENT =================
 
@@ -411,6 +443,15 @@ def admin():
             }
 
             save_posts(posts)
+            new_post = Post(
+                image=file.filename,
+                caption=caption,
+                likes=0,
+                created_at=str(datetime.now())
+            )
+
+            db.session.add(new_post)
+            db.session.commit()
             return redirect("/admin")
 
     online_users = {}
@@ -452,6 +493,19 @@ def delete_post(image):
         path = os.path.join(UPLOAD_FOLDER, image)
         if os.path.exists(path):
             os.remove(path)
+            Post.query.filter_by(
+                image=image
+            ).delete()
+
+            Comment.query.filter_by(
+                post_image=image
+            ).delete()
+
+            Like.query.filter_by(
+                post_image=image
+            ).delete()
+
+            db.session.commit()
 
         del posts[image]
         save_posts(posts)
@@ -484,6 +538,15 @@ def delete_comment(image, index):
 def posts_api():
 
     posts = load_posts()
+
+    for image in posts:
+
+        post = Post.query.filter_by(
+            image=image
+        ).first()
+
+        if post:
+            posts[image]["likes"] = post.likes
 
     for image in posts:
 
@@ -571,7 +634,28 @@ def map_data():
 # ================= RUN =================
 
 with app.app_context():
+
     db.create_all()
 
+    posts = load_posts()
+
+    for image, data in posts.items():
+
+        exists = Post.query.filter_by(
+            image=image
+        ).first()
+
+        if not exists:
+
+            post = Post(
+                image=image,
+                caption=data.get("caption", ""),
+                likes=data.get("likes", 0),
+                created_at=data.get("time", "")
+            )
+
+            db.session.add(post)
+
+    db.session.commit()
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
