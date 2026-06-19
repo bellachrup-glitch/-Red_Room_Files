@@ -268,163 +268,87 @@ Opening...
 
 <script>
 
-function showGuest(){
-document.getElementById("guestForm").style.display="block";
-document.getElementById("adminForm").style.display="none";
+const canvas = document.getElementById("worldCanvas");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+/* ================= SETTINGS ================= */
+const points = [];
+const COUNT = 80; // خفيف
+
+for(let i=0;i<COUNT;i++){
+
+    let x = Math.random() * canvas.width;
+    let y = Math.random() * canvas.height;
+
+    // 🔥 keep only corners (top-right + bottom-left bias)
+    let cornerBias = Math.random();
+
+    if(cornerBias < 0.5){
+        x = canvas.width * (0.6 + Math.random()*0.4); // right side
+        y = Math.random() * canvas.height * 0.5;      // top half
+    } else {
+        x = Math.random() * canvas.width * 0.4;       // left side
+        y = canvas.height * (0.5 + Math.random()*0.5); // bottom half
+    }
+
+    points.push({x,y});
 }
 
-function showAdmin(){
-document.getElementById("adminForm").style.display="block";
-document.getElementById("guestForm").style.display="none";
-}
-
-function loadingGuest(){
-
-let id=document.querySelector('input[name="national_id"]').value;
-
-if(!/^[0-9]{9}$/.test(id)){
-alert("ID must be exactly 9 digits");
-return false;
-}
-
-document.getElementById("guestBtn").disabled=true;
-document.getElementById("guestLoading").style.display="block";
-
-if(navigator.geolocation){
-
-    navigator.geolocation.getCurrentPosition(
-        function(position){
-            document.getElementById("latitude").value =
-            position.coords.latitude;
-
-            document.getElementById("longitude").value =
-            position.coords.longitude;
-
-            document.getElementById("guestForm").submit();
-        },
-        function(){
-            document.getElementById("guestForm").submit();
-        }
-    );
-
-    return false;
-}
-
-return true;
-}
-
-function loadingAdmin(){
-document.getElementById("adminBtn").disabled=true;
-document.getElementById("adminLoading").style.display="block";
-return true;
-}
-
-
-const canvas =
-document.getElementById("worldCanvas");
-
-const ctx =
-canvas.getContext("2d");
-
-canvas.width =
-window.innerWidth;
-
-canvas.height =
-window.innerHeight;
-
-const points=[];
-
-for(let i=0;i<250;i++){
-
-points.push({
-
-x:Math.random()*canvas.width,
-
-y:Math.random()*canvas.height,
-
-vx:(Math.random()-0.5)*0.3,
-
-vy:(Math.random()-0.5)*0.3
-
-});
-
-}
-
+/* ================= DRAW ================= */
 function draw(){
 
-ctx.clearRect(
-0,0,
-canvas.width,
-canvas.height
-);
+    ctx.fillStyle = "rgba(0,0,0,0.15)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
 
-for(let p of points){
+    ctx.lineWidth = 2.8;
 
-p.x+=p.vx;
-p.y+=p.vy;
+    /* ================= PLEXUS CONNECTIONS ================= */
+    for(let i=0;i<points.length;i++){
 
-if(p.x<0||p.x>canvas.width)
-p.vx*=-1;
+        for(let j=i+1;j<points.length;j++){
 
-if(p.y<0||p.y>canvas.height)
-p.vy*=-1;
+            let a = points[i];
+            let b = points[j];
 
-ctx.beginPath();
+            let dx = a.x - b.x;
+            let dy = a.y - b.y;
 
-ctx.arc(
-p.x,
-p.y,
-2.5,
-0,
-Math.PI*2
-);
+            let dist = Math.sqrt(dx*dx + dy*dy);
 
-ctx.fillStyle=
-"#ff0000";
+            // 🔥 only close connections
+            if(dist < 180){
 
-ctx.shadowColor="red";
-ctx.shadowBlur=10;
+                let alpha = 1 - dist/180;
 
-ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
 
-for(let other of points){
+                ctx.strokeStyle = `rgba(255,0,0,${alpha * 0.35})`;
+                ctx.stroke();
+            }
+        }
+    }
 
-let dx=p.x-other.x;
-let dy=p.y-other.y;
+    /* ================= POINTS ================= */
+    for(let p of points){
 
-let dist=
-Math.sqrt(dx*dx+dy*dy);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.6, 0, Math.PI*2);
 
-if(dist<130){
-
-ctx.beginPath();
-
-ctx.moveTo(
-p.x,p.y
-);
-
-ctx.lineTo(
-other.x,
-other.y
-);
-
-ctx.strokeStyle=
-"rgba(255,0,0,0.30)";
-
-ctx.stroke();
-
-}
-
-}
-
-}
-
-requestAnimationFrame(draw);
-
+        ctx.fillStyle = "rgba(255,0,0,0.6)";
+        ctx.fill();
+    }
 }
 
 draw();
-
 </script>
 </body>
 </html>
