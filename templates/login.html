@@ -55,6 +55,7 @@ body::before{
 
     animation:fadeIn 1s ease-in-out;
     position:relative;
+    z-index:10;
 }
 
 @keyframes fadeIn{
@@ -65,7 +66,11 @@ body::before{
 /* ================= TITLE ================= */
 h1{
     color:#ff2b2b;
-    letter-spacing:2px;
+    font-size:28px;
+    font-weight:700;
+    letter-spacing:4px;
+    margin-top:10px;
+
     text-shadow:0 0 10px red;
     animation:glow 2s infinite alternate;
 }
@@ -117,15 +122,82 @@ input:focus,select:focus{
     margin-top:10px;
 }
 
+    .logo-area{
+text-align:center;
+margin-bottom:25px;
+}
+
+.logo-svg{
+width:110px;
+height:110px;
+filter:
+drop-shadow(0 0 10px red)
+drop-shadow(0 0 25px red);
+
+animation:rotateLogo 15s linear infinite;
+}
+
+@keyframes rotateLogo{
+from{transform:rotate(0deg);}
+to{transform:rotate(360deg);}
+}
+
+.subtitle{
+color:#999;
+font-size:11px;
+letter-spacing:4px;
+margin-top:8px;
+}
+
+#worldCanvas{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    z-index:0;
+    opacity:.65;
+}
 </style>
 
 </head>
 
 <body>
-
+<canvas id="worldCanvas"></canvas>
 <div class="login-box">
 
-<h1>👁 Red Room Files</h1>
+<div class="logo-area">
+
+<svg class="logo-svg" viewBox="0 0 200 200">
+
+<circle cx="100" cy="100" r="65"
+stroke="#ff0000"
+stroke-width="3"
+fill="none"/>
+
+<circle cx="100" cy="100" r="40"
+stroke="#ff0000"
+stroke-width="2"
+fill="none"/>
+
+<circle cx="100" cy="100" r="8"
+fill="#ff0000"/>
+
+<line x1="35" y1="100" x2="165" y2="100"
+stroke="#ff0000"/>
+
+<line x1="100" y1="35" x2="100" y2="165"
+stroke="#ff0000"/>
+
+</svg>
+
+<h1>RED ROOM FILES</h1>
+
+<div class="subtitle">
+RESTRICTED FILE ARCHIVE
+</div>
+
+</div>
 
 <button onclick="showGuest()">Enter as Guest</button>
 <button onclick="showAdmin()">Admin Login</button>
@@ -247,7 +319,115 @@ document.getElementById("adminLoading").style.display="block";
 return true;
 }
 
-</script>
 
+const canvas =
+document.getElementById("worldCanvas");
+
+const ctx =
+canvas.getContext("2d");
+
+canvas.width =
+window.innerWidth;
+
+canvas.height =
+window.innerHeight;
+
+const points=[];
+
+for(let i=0;i<250;i++){
+
+points.push({
+
+x:Math.random()*canvas.width,
+
+y:Math.random()*canvas.height,
+
+vx:(Math.random()-0.5)*0.3,
+
+vy:(Math.random()-0.5)*0.3
+
+});
+
+}
+
+function draw(){
+
+ctx.clearRect(
+0,0,
+canvas.width,
+canvas.height
+);
+
+for(let p of points){
+
+p.x+=p.vx;
+p.y+=p.vy;
+
+if(p.x<0||p.x>canvas.width)
+p.vx*=-1;
+
+if(p.y<0||p.y>canvas.height)
+p.vy*=-1;
+
+ctx.beginPath();
+
+ctx.arc(
+p.x,
+p.y,
+2.5,
+0,
+Math.PI*2
+);
+
+ctx.fillStyle=
+"#ff0000";
+
+ctx.shadowColor="red";
+ctx.shadowBlur=10;
+
+ctx.fill();
+
+for(let other of points){
+
+let dx=p.x-other.x;
+let dy=p.y-other.y;
+
+let dist=
+Math.sqrt(dx*dx+dy*dy);
+
+if(dist<130){
+
+ctx.beginPath();
+
+ctx.moveTo(
+p.x,p.y
+);
+
+ctx.lineTo(
+other.x,
+other.y
+);
+
+ctx.strokeStyle=
+"rgba(255,0,0,0.30)";
+
+ctx.stroke();
+
+}
+
+}
+
+}
+
+requestAnimationFrame(draw);
+
+}
+
+draw();
+
+</script>
 </body>
 </html>
+
+
+
